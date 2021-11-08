@@ -11,8 +11,8 @@ ffi.cdef[[
 	typedef struct { uint8_t splitchar; uint8_t flag; uint32_t high; uint32_t low; uint32_t equal; } TSTNode;
 ]]
 
-local function TSTDB(filename)
-
+local function TSTDB(filename, keyproc)
+	keyproc = keyproc or ffi.string
 	local self = {}
 	
 	-- private variables
@@ -41,7 +41,7 @@ local function TSTDB(filename)
 		for i = 0, buf_len - 1 do
 			if buffer[i] == separator_byte then
 				if count == segment then 
-					callback(ffi.string(buffer + start, i - start)) 
+					callback(keyproc(buffer + start, i - start)) 
 					return
 				end
 				count = count + 1
@@ -49,7 +49,7 @@ local function TSTDB(filename)
 			end
 		end
 		if count == segment then
-			callback(ffi.string(buffer + start, buf_len - start))
+			callback(keyproc(buffer + start, buf_len - start))
 		end
 	end
 	
@@ -167,7 +167,7 @@ local function TSTDB(filename)
 		buffer[buf_index] = node.splitchar
 		traverse_desc(nodes[node.equal], buffer, buf_index + 1, callback)
 		if node.flag == 1 then 
-			callback(ffi.string(buffer, buf_index + 1)) 
+			callback(keyproc(buffer, buf_index + 1)) 
 		end
 		traverse_desc(nodes[node.low], buffer, buf_index, callback)
 	end
@@ -190,7 +190,7 @@ local function TSTDB(filename)
 				if segment then
 					get_segment(buffer, buf_index + 1, callback, segment)
 				else	
-					callback(ffi.string(buffer, buf_index + 1))
+					callback(keyproc(buffer, buf_index + 1))
 				end
 			end
 			if wildcard then
